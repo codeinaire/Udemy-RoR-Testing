@@ -159,3 +159,13 @@ Why did he make changes to the guard file?
 
 
 ### Lecture 25 - Data validations
+
+
+### Lecture 29 - Listing articles test
+
+- create branch
+- create 2 articles to display
+
+- list the two articles
+
+- expect both articles titles and bodies to be present

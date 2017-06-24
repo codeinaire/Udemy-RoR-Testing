@@ -1,6 +1,75 @@
 # Section 2, Lecture 25
 
+Add the following styles to custom.css.scss:
 
+body {
+  padding-top: 80px;
+  background: #e1e1e1;
+  color: #64103F;
+}
+
+// Navbar styling
+.navbar {
+ background: #64103F;
+ padding-bottom: 20px;
+}
+
+.navbar-default .navbar-brand {
+  padding-top: 25px;
+  font-size: 150%;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.navbar-default .navbar-brand:hover {
+  color: #ff0000;
+}
+
+.navbar-default {
+  border: #64103F;
+}
+
+.navbar-nav {
+  padding-top: 10px;
+  padding-right: 20px;
+}
+
+.navbar-default .navbar-nav li > a {
+  font-weight: bold;
+  font-size: 130%;
+  color: #ffffff;
+}
+
+.navbar-default .navbar-nav li > a:hover {
+  color: #ff0000;
+}
+
+// Form styling
+.page-heading, div > label {
+  color: #64103F;
+}
+
+Update the create action in the articles_controller to change flash to flash.now
+def create
+@article = Article.new(article_params)
+if @article.save
+flash[:success] = "Article has been created"
+redirect_to articles_path
+else
+flash.now[:danger] = "Article has not been created"
+render :new
+end
+end
+
+Make a commit:
+git add -A
+git commit -m "Complete article validations and flash"
+git checkout master
+git merge article-validation
+git push
+
+
+# Section 2, Lecture 25
 
 Create a new git branch as follows:
 
