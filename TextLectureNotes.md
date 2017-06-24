@@ -140,8 +140,6 @@ end
 
 # Section 2 Lecture 18
 
-
-
 Generate an article model:
 
 rails g model article title:string body:text
@@ -182,4 +180,64 @@ git add -A
 git commit -m "complete article feature"
 git checkout master
 git merge article-feature-success
+git push
+
+# Section 2 Lecture 19
+
+Section 2, Lecture 20
+
+Add Bootstrap
+In the Gemfile add the following gems:
+gem 'bootstrap-sass', '~>3.3.6'
+gem 'autoprefixer-rails', '~>6.3.7'
+
+Run:
+bundle install
+
+Go the the stylesheets folder under the assets folder and create a new file called
+custom.css.scss and add the following to it:
+@import "bootstrap-sprockets";
+@import "bootstrap";
+
+Also add the following to the application.js file in the assets/javascript folder under the line that says require jquery_ujs:
+
+//= require bootstrap-sprockets
+
+Navigate to app/views/layouts/application.html.erb and add a navigation bar in the body tag:
+<header role="banner">
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+<div class="container-fluid">
+<div class="navbar-header">
+<button type="button" class="navbar-toggle" data-toggle="collapse"
+data-target="#bs-example-navbar-collapse-1">
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+<%= link_to "Blog App", root_path, class: "navbar-brand" %>
+</div>
+<div class="navbar-collapse collapse" id="bs-example-navbar-collapse-1">
+<ul class="nav navbar-nav">
+<li class="active"><%= link_to "Authors", "#" %></li>
+</ul>
+</div>
+</div>
+</nav>
+</header>
+<div class="container">
+<div class="row">
+<div class="col-md-12">
+<% flash.each do |key, message| %>
+<div class="text-center alert alert-<%= key == 'notice'? 'success': 'danger' %>">
+<%= message %>
+</div>
+<% end %>
+<%= yield %>
+</div>
+</div>
+</div>
+
+Make a commit:
+git add -A
+git commit -m "Setup bootstrap and navbar"
 git push

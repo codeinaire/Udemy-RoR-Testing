@@ -143,3 +143,7 @@ Not exactly sure what autoprefixer-rails is, but here's the github for it: https
 This is what it does:
 
 `Autoprefixer is a tool to parse CSS and add vendor prefixes to CSS rules using values from the Can I Use. This gem provides Ruby and Ruby on Rails integration with this JavaScript tool.`
+
+### Lecture 21 - Guard gem
+
+We installed a bunch of different guard gems. This gem runs test automatically upon changing of any file in the program.
