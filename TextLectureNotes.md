@@ -1,77 +1,231 @@
-# Section 2, Lecture 12
+# Section 2, Lecture 20
 
-Install RSpec and Capybara
+The final Guardfile after the updates is below, some comments have been removed, you can also get this from the github repo of the course at
 
-In the Gemfile add the needed gems in their specific groups as follows:
+https://github.com/udemyrailscourse/bdd_course_rails5/blob/master/Guardfile
 
-group :development, :test do
-gem 'rspec-rails', '3.1.0'
+cucumber_options = {
+  # Below are examples overriding defaults
+
+  # cmd: 'bin/cucumber',
+  # cmd_additional_args: '--profile guard',
+
+  # all_after_pass: false,
+  # all_on_start: false,
+  # keep_failed: false,
+  # feature_sets: ['features/frontend', 'features/experimental'],
+
+  # run_all: { cmd_additional_args: '--profile guard_all' },
+  # focus_on: { 'wip' }, # @wip
+  # notification: false
+}
+
+guard "cucumber", cucumber_options do
+  watch(%r{^features/.+\.feature$})
+  watch(%r{^features/support/.+$}) { "features" }
+
+  watch(%r{^features/step_definitions/(.+)_steps\.rb$}) do |m|
+    Dir[File.join("**/#{m[1]}.feature")][0] || "features"
+  end
 end
 
-group :test do
-gem 'capybara', '2.7.1'
+# Note: The cmd option is now required due to the increasing number of ways
+#       rspec may be run, below are examples of the most common uses.
+#  * bundler: 'bundle exec rspec'
+#  * bundler binstubs: 'bin/rspec'
+#  * spring: 'bin/rspec' (This will use spring if running and you have
+#                          installed the spring binstubs per the docs)
+#  * zeus: 'zeus rspec' (requires the server to be started separately)
+#  * 'just' rspec: 'rspec'
+
+guard :rspec, cmd: "rspec" do
+  require "guard/rspec/dsl"
+  dsl = Guard::RSpec::Dsl.new(self)
+
+  # Feel free to open issues for suggestions and improvements
+
+  # RSpec files
+  rspec = dsl.rspec
+  watch(rspec.spec_helper) { rspec.spec_dir }
+  watch(rspec.spec_support) { rspec.spec_dir }
+  watch(rspec.spec_files)
+
+  # Ruby files
+  ruby = dsl.ruby
+  dsl.watch_spec_files_for(ruby.lib_files)
+
+  # Rails files
+  rails = dsl.rails(view_extensions: %w(erb haml slim))
+  dsl.watch_spec_files_for(rails.app_files)
+  dsl.watch_spec_files_for(rails.views)
+
+  watch(%r{^app/controllers/(.+)_(controller)\.rb$})  { "spec/features" }
+  watch(%r{^app/models/(.+)\.rb$})  { "spec/features" }
+  watch(rails.controllers) do |m|
+    [
+      rspec.spec.call("routing/#{m[1]}_routing"),
+      rspec.spec.call("controllers/#{m[1]}_controller"),
+      rspec.spec.call("acceptance/#{m[1]}")
+    ]
+  end
+
+  # Rails config changes
+  watch(rails.spec_helper)     { rspec.spec_dir }
+  watch(rails.routes)          { "spec" } # { "#{rspec.spec_dir}/routing" }  
+  watch(rails.app_controller)  { "#{rspec.spec_dir}/controllers" }
+
+  # Capybara features specs
+  watch(rails.view_dirs)     { "spec/features" } # { |m| rspec.spec.call("features/#{m[1]}") }
+  watch(rails.layouts)       { |m| rspec.spec.call("features/#{m[1]}") }
+
+  # Turnip features and steps
+  watch(%r{^spec/acceptance/(.+)\.feature$})
+  watch(%r{^spec/acceptance/steps/(.+)_steps\.rb$}) do |m|
+    Dir[File.join("**/#{m[1]}.feature")][0] || "spec/acceptance"
+  end
 end
 
-Then run:
+Important additions that were made were the two lines below in the # Rails files section:
+watch(%r{^app/controllers/(.+)_(controller)\.rb$})  { "spec/features" }
+watch(%r{^app/models/(.+)\.rb$})  { "spec/features" }
+
+The two updates were also made, first in the # Rails config changes section:
+watch(rails.routes)          { "spec" } # { "#{rspec.spec_dir}/routing" }
+
+The last update was made in the # Capybara features specs section:
+watch(rails.view_dirs)     { "spec/features" } # { |m| rspec.spec.call("features/#{m[1]}") }
+
+# Section 2 Lecture 20
+
+Create a new git topic branch as follows:
+
+git checkout -b adding-guard
+
+Add the following gems to the development group of the Gemfile:
+gem 'guard', '~> 2.14.0'
+gem 'guard-rspec', '~> 4.7.2'
+gem 'guard-cucumber', '~> 2.1.2'
+
+Run the following command to install the gems:
 bundle install
 
-Now run the rspec install generator:
-rails generate rspec:install
+Also run the command:
+guard init
 
-Generate a stub for RSpec:
-bundle binstubs rspec-core
+Run the command:
+bundle binstubs guard
 
-Make a git commit and push to Github:
+Run:
+cucumber --init
+
+Make a commit:
 git add -A
-git commit -m "Setup RSpec and Capybara"
+git commit -m "Add Guard"
+git checkout master
+git merge adding-guard
 git push
 
-# Section 2, Lecture 14
+# Section 2 Lecture 19
 
-Create Article Feature Test -
+Add Bootstrap
+In the Gemfile add the following gems:
+gem 'bootstrap-sass', '~>3.3.6'
+gem 'autoprefixer-rails', '~>6.3.7'
 
-Create a topic branch:
-git checkout -b article-feature-success
+Run:
+bundle install
 
-Create a folder called features under spec directory:
-mkdir spec/features
+Go the the stylesheets folder under the assets folder and create a new file called
+custom.css.scss and add the following to it:
+@import "bootstrap-sprockets";
+@import "bootstrap";
 
-In that folder create a new file called creating_article_spec.rb:
-Open that file and add the following:
+Also add the following to the application.js file in the assets/javascript folder under the line that says require jquery_ujs:
 
-require "rails_helper"
-RSpec.feature "Creating Articles" do
-scenario "A user creates a new article" do
-visit "/"
-click_link "New Article"
-fill_in "Title", with: "Creating a blog"
-fill_in "Body", with: "Lorem Ipsum"
-click_button "Create Article"
-expect(page).to have_content("Article has been created")
-expect(page.current_path).to eq(articles_path)
+//= require bootstrap-sprockets
+
+Navigate to app/views/layouts/application.html.erb and add a navigation bar in the body tag:
+<header role="banner">
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+<div class="container-fluid">
+<div class="navbar-header">
+<button type="button" class="navbar-toggle" data-toggle="collapse"
+data-target="#bs-example-navbar-collapse-1">
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+<%= link_to "Blog App", root_path, class: "navbar-brand" %>
+</div>
+<div class="navbar-collapse collapse" id="bs-example-navbar-collapse-1">
+<ul class="nav navbar-nav">
+<li class="active"><%= link_to "Authors", "#" %></li>
+</ul>
+</div>
+</div>
+</nav>
+</header>
+<div class="container">
+<div class="row">
+<div class="col-md-12">
+<% flash.each do |key, message| %>
+<div class="text-center alert alert-<%= key == 'notice'? 'success': 'danger' %>">
+<%= message %>
+</div>
+<% end %>
+<%= yield %>
+</div>
+</div>
+</div>
+
+Make a commit:
+git add -A
+git commit -m "Setup bootstrap and navbar"
+git push
+
+# Section 2 Lecture 18
+
+Generate an article model:
+
+rails g model article title:string body:text
+
+To run the migration file that's created, run the following command:
+rails db:migrate
+
+This time the error message says to create the create action in Articles Controller
+Create the action, and the article_params method under private like below:
+
+def create
+@article = Article.new(article_params)
+@article.save
+flash[:success] = "Article has been created"
+redirect_to articles_path
 end
+
+private
+def article_params
+params.require(:article).permit(:title, :body)
 end
 
-Now save the file type this to run the spec (or you can just type rspec to run all specs):
-rspec spec/features/creating_article_spec.rb
+Running the rspec again fails with this message:
+Failure/Error: expect(page).to have_content("Article has been created") expected to find text "Article has been created" in "New Article"
+Can’t find flash message. Add flash messaging to the app/views/layouts/application.html.erb file:
 
-You get a routing error that suggests to create a root path
-Update the routes.rb file in the config folder like below:
-root to: "articles#index"
+<% flash.each do |key, message| %>
+<div class="text-center alert alert-<%= key == 'notice'? 'success': 'danger' %>">
+<%= message %>
+</div>
+<% end %>
 
-Now save and run rspec spec/features/creating_article_spec.rb
-again.
-You get an error that says: Uninitialized constant ArticlesController. This suggests to create the Articles Controller
+Run rspec again and this time it passes.
 
-Generate an articles controller with an index action by issuing the following command:
-rails g controller articles index
+Make a commit and merge code:
 
-Remove the get 'articles/index' line from the routes.rb file
-
-Save￼ and run rspec again.
-The next error message suggests to add the "New Article" link
-
-
+git add -A
+git commit -m "complete article feature"
+git checkout master
+git merge article-feature-success
+git push
 
 # Section 2 Lecture 16
 
@@ -138,106 +292,75 @@ end
 
 ```
 
-# Section 2 Lecture 18
+# Section 2, Lecture 14
 
-Generate an article model:
+Create Article Feature Test -
 
-rails g model article title:string body:text
+Create a topic branch:
+git checkout -b article-feature-success
 
-To run the migration file that's created, run the following command:
-rails db:migrate
+Create a folder called features under spec directory:
+mkdir spec/features
 
-This time the error message says to create the create action in Articles Controller
-Create the action, and the article_params method under private like below:
+In that folder create a new file called creating_article_spec.rb:
+Open that file and add the following:
 
-def create
-@article = Article.new(article_params)
-@article.save
-flash[:success] = "Article has been created"
-redirect_to articles_path
+require "rails_helper"
+RSpec.feature "Creating Articles" do
+scenario "A user creates a new article" do
+visit "/"
+click_link "New Article"
+fill_in "Title", with: "Creating a blog"
+fill_in "Body", with: "Lorem Ipsum"
+click_button "Create Article"
+expect(page).to have_content("Article has been created")
+expect(page.current_path).to eq(articles_path)
+end
 end
 
-private
-def article_params
-params.require(:article).permit(:title, :body)
+Now save the file type this to run the spec (or you can just type rspec to run all specs):
+rspec spec/features/creating_article_spec.rb
+
+You get a routing error that suggests to create a root path
+Update the routes.rb file in the config folder like below:
+root to: "articles#index"
+
+Now save and run rspec spec/features/creating_article_spec.rb
+again.
+You get an error that says: Uninitialized constant ArticlesController. This suggests to create the Articles Controller
+
+Generate an articles controller with an index action by issuing the following command:
+rails g controller articles index
+
+Remove the get 'articles/index' line from the routes.rb file
+
+Save￼ and run rspec again.
+The next error message suggests to add the "New Article" link
+
+# Section 2, Lecture 12
+
+Install RSpec and Capybara
+
+In the Gemfile add the needed gems in their specific groups as follows:
+
+group :development, :test do
+gem 'rspec-rails', '3.1.0'
 end
 
-Running the rspec again fails with this message:
-Failure/Error: expect(page).to have_content("Article has been created") expected to find text "Article has been created" in "New Article"
-Can’t find flash message. Add flash messaging to the app/views/layouts/application.html.erb file:
+group :test do
+gem 'capybara', '2.7.1'
+end
 
-<% flash.each do |key, message| %>
-<div class="text-center alert alert-<%= key == 'notice'? 'success': 'danger' %>">
-<%= message %>
-</div>
-<% end %>
-
-Run rspec again and this time it passes.
-
-Make a commit and merge code:
-
-git add -A
-git commit -m "complete article feature"
-git checkout master
-git merge article-feature-success
-git push
-
-# Section 2 Lecture 19
-
-Section 2, Lecture 20
-
-Add Bootstrap
-In the Gemfile add the following gems:
-gem 'bootstrap-sass', '~>3.3.6'
-gem 'autoprefixer-rails', '~>6.3.7'
-
-Run:
+Then run:
 bundle install
 
-Go the the stylesheets folder under the assets folder and create a new file called
-custom.css.scss and add the following to it:
-@import "bootstrap-sprockets";
-@import "bootstrap";
+Now run the rspec install generator:
+rails generate rspec:install
 
-Also add the following to the application.js file in the assets/javascript folder under the line that says require jquery_ujs:
+Generate a stub for RSpec:
+bundle binstubs rspec-core
 
-//= require bootstrap-sprockets
-
-Navigate to app/views/layouts/application.html.erb and add a navigation bar in the body tag:
-<header role="banner">
-<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-<div class="container-fluid">
-<div class="navbar-header">
-<button type="button" class="navbar-toggle" data-toggle="collapse"
-data-target="#bs-example-navbar-collapse-1">
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-<span class="icon-bar"></span>
-</button>
-<%= link_to "Blog App", root_path, class: "navbar-brand" %>
-</div>
-<div class="navbar-collapse collapse" id="bs-example-navbar-collapse-1">
-<ul class="nav navbar-nav">
-<li class="active"><%= link_to "Authors", "#" %></li>
-</ul>
-</div>
-</div>
-</nav>
-</header>
-<div class="container">
-<div class="row">
-<div class="col-md-12">
-<% flash.each do |key, message| %>
-<div class="text-center alert alert-<%= key == 'notice'? 'success': 'danger' %>">
-<%= message %>
-</div>
-<% end %>
-<%= yield %>
-</div>
-</div>
-</div>
-
-Make a commit:
+Make a git commit and push to Github:
 git add -A
-git commit -m "Setup bootstrap and navbar"
+git commit -m "Setup RSpec and Capybara"
 git push
