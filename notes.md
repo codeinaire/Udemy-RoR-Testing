@@ -97,3 +97,41 @@ Install rspec:
 This generates a 'stub' for rspec. I don't know what a stub is, I'll find out later.
 
 `bundle binstubs rspec-core`
+
+### Lecture 13
+
+Process for creating articles feature test and feature
+- Create a branch to do the development work.
+- Write a feature test.
+- Build features to make test pass one by one.
+- Once the feature test passes with no errors - merge branch with master branch.
+
+
+#### 13.1 Workflow for creating new article
+
+Create new article test:
+- Visit root page.
+- click on new article.
+- fill in title.
+- fill in body.
+- create article.
+
+What happens if new article created, or the 'expectations':
+- Message article has been created.
+- Redirect to articles path.
+
+#### 13.2 How to run test
+
+Run all tests in rspec:
+
+`rspec`
+
+run single tests:
+
+`rspec spec/features/<name of file>.rb`
+
+#### Text from the crash of atom
+
+/usr/bin/atom: line 130:  5722 Segmentation fault      (core dumped) nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > "$ATOM_HOME/nohup.out" 2>&1
+Failed to get crash dump id.
+Report Id:
