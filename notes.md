@@ -135,3 +135,11 @@ run single tests:
 /usr/bin/atom: line 130:  5722 Segmentation fault      (core dumped) nohup "$ATOM_PATH" --executed-from="$(pwd)" --pid=$$ "$@" > "$ATOM_HOME/nohup.out" 2>&1
 Failed to get crash dump id.
 Report Id:
+
+### Lecture 19
+
+Not exactly sure what autoprefixer-rails is, but here's the github for it: https://github.com/ai/autoprefixer-rails
+
+This is what it does:
+
+`Autoprefixer is a tool to parse CSS and add vendor prefixes to CSS rules using values from the Can I Use. This gem provides Ruby and Ruby on Rails integration with this JavaScript tool.`
