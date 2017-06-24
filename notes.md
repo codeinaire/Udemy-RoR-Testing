@@ -156,3 +156,6 @@ Will have guard running in the background monitoring any changes.
 
 Why did he make changes to the guard file?
 - Because we made custom tests and whenever anything is changed it'll check these custom files instead of the default tests or whatever the default is in the guard file.
+
+
+### Lecture 25 - Data validations
