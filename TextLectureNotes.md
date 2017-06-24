@@ -1,3 +1,74 @@
+# Section 2, Lecture 25
+
+
+
+Create a new git branch as follows:
+
+git checkout -b article-validation
+Start guard in a new terminal like below:
+guard
+
+Add a new scenario to creating_article_spec.rb file to test for failure
+Add the scenario like below:
+scenario "A user fails to create a new article" do
+visit "/"
+click_link "New Article"
+fill_in "Title", with: ""
+fill_in "Body", with: ""
+click_button "Create Article"
+expect(page).to have_content("Article has not been created")
+expect(page).to have_content("Title can't be blank") expect(page).to have_content("Body can't be blank")
+end
+
+Guard’s output should give the error that says
+Failure/Error: expect(page).to have_content("Article has not been created")
+expected to find text "Article has not been created" in "Blog App Article has been created New Article"
+This is because there is no failure path. Modify controller create action to this:
+
+def create
+@article = Article.new(article_params)
+if @article.save
+flash[:success] = "Article has been created"
+redirect_to articles_path
+else
+flash[:danger] = "Article has not been created"
+render :new
+end
+end
+
+Results of run (whether from Guard or manually) should be the same as the previous error message because validations are not in place.
+
+Add Validation -> Open the file app/models/article.rb and change it to this:
+class Article < ActiveRecord::Base
+validates :title, presence: true
+validates :body, presence: true
+end
+
+When tests run again they fail with the message:
+Failure/Error: expect(page).to have_content("Title can't be blank") expected to find text "Title can't be blank"...
+
+Now we have to add this error porton to the new form template directly below form_for:
+￼￼￼
+￼￼￼￼￼
+<% if @article.errors.any? %>
+<div class="panel panel-danger col-md-offset-1">
+<div class="panel-heading">
+<h2 class="panel-title">
+<%= pluralize(@article.errors.count, "error") %>
+prohibited this article from being saved: </h2>
+<div class="panel-body">
+<ul>
+<% @article.errors.full_messages.each do |msg| %>
+<li>
+<%= msg %>
+</li>
+<% end %>
+</ul>
+</div>
+</div>
+</div>
+<% end %>
+
 # Section 2, Lecture 20
 
 The final Guardfile after the updates is below, some comments have been removed, you can also get this from the github repo of the course at
