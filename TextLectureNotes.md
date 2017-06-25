@@ -1,3 +1,27 @@
+# Section 3, Lecture 57
+
+Create a branch:
+git checkout -b fixing-broken-article-specs
+
+Uncomment the #before_action :authenticate_user! line in the articles_controller by removing the #
+
+Open the editing_article_spec.rb
+and update the before do
+
+before do
+john = User.create(email: "john@example.com", password: "password")
+login_as(john)
+@article = Article.create(title: "Title One", body: "Body of article one", user: john)
+end
+
+Make a commit
+git add -A
+git commit -m "Fix broken editing article spec"
+
+Make the same updates for show_article_spec.rb, listing_article_spec and delete_article_specs and commits
+
+After last commit changes should be merged back to master
+
 # Section 3, Lecture 55
 
 Create a new git branch called link-articles-to-users:
