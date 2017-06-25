@@ -1,6 +1,150 @@
+# Section 3 Lecture 51
+
+Create a branch:
+
+git checkout -b devise-messages
+
+Add the following to the custom css file:
+// Devise Error Messages
+
+error_explanation {
+background-color: f2dede;
+color: a94442;
+text-align: left;
+padding: 5px 20px;
+margin-bottom: 30px;
+}
+
+error_explanation h2 {
+font-size: 150%;
+}
+
+The next thing to do is to factor the layout file into partials. First create a folder within views called shared. In the shared folder create a file called header.html.erb and cut the header portion from the layout file (application.html.erb) and paste it into this file. Save the file.
+In place of the cut out text in the application.html.erb file put the following:
+<%= render 'shared/header' %>
+
+Do the same for the rest of the file, you can call this partial main.html.erb
+
+Do a commit:
+git add -A
+git commit -m "Stylize devise and partial"
+git checkout master
+git merge devise-messages
+git push
+
+# Section 3, Lecture 49
+
+Create a topic branch:
+
+git checkout -b users-signin
+
+Create a spec:
+spec/features/signing_users_in_spec.rb
+
+require "rails_helper"
+RSpec.feature "Users signin" do
+before do
+@john = User.create!(email: "john@example.com", password: "password")
+end
+scenario "with valid credentials" do
+visit "/"
+click_link "Sign in"
+fill_in "Email", with: @john.email
+fill_in "Password", with: @john.password
+click_button "Log in"
+expect(page).to have_content("Signed in successfully.")
+expect(page).to have_content("Signed in as #{@john.email}")
+expect(page).not_to have_link("Sign in")
+expect(page).not_to have_link("Sign up")
+end
+end
+
+Run rspec. It fails with this message Unable to find link 'Sign in'
+
+Add this link to the app/views/layout/application.html.erb below the line for
+Sign up
+
+<li><%= link_to "Sign in", new_user_session_path %></li>
+
+Next fail: Expected to find signed in as ...
+
+Add the following code below sign-in:
+<% if user_signed_in? %>
+<p class="navbar-text">
+Signed in as <%= "#{current_user.email}" %>
+</p>
+<% end %>
+
+Rspec runs and finds the next error:
+User signs in with valid credentials
+Failure/Error: expect(page).not_to have_link("Sign in")
+expected not to find link "Sign in", found 1 match: "Sign in"
+
+Modify the links to look like below:
+<% unless user_signed_in? %>
+<li><%= link_to "Sign up", new_user_registration_path %></li>
+<li><%= link_to "Sign in", new_user_session_path %></li>
+<% end %>
+
+You may choose to add the following to the top of articles_controller.rb file (I'd recommend keeping it coded out for now):
+#before_action :authenticate_user!, except: [:index, :show]
+
+Update the sign-in view app/views/devise/sessions/new.html.erb:
+<h2 class='text-center'>Log in</h2>
+<div class='row'>
+<div class='col-md-12'>
+<%= form_for(resource, as: resource_name, :html => {class: "form-horizontal", role: "form"}, url: session_path(resource_name)) do |f| %>
+<div class='form-group'>
+<div class='control-label col-md-3'>
+<%= f.label :email %><br />
+</div>
+<div class='col-md-9'>
+<%= f.email_field :email, class: 'form-control', autofocus: true %>
+</div>
+</div>
+
+<div class='form-group'>
+<div class='control-label col-md-3'>
+<%= f.label :password %><br />
+</div>
+<div class='col-md-9'>
+<%= f.password_field :password, class: 'form-control', autocomplete: "off" %>
+</div>
+</div>
+
+<% if devise_mapping.rememberable? -%>
+<div class='form-group'>
+<div class='col-md-9 col-md-offset-3'>
+<div class="checkbox">
+<label>
+<%= f.check_box :remember_me %> Remember me
+</label>
+</div>
+</div>
+</div>
+<% end -%>
+<div class='form-group'>
+<div class='col-md-offset-3 col-md-9'>
+<%= f.submit "Log in", class: 'btn btn-success btn-lg' %>
+</div>
+</div>
+<% end %>
+<div class='form-group'>
+<div class='col-md-offset-3 col-md-9 sign-link'>
+<%= render "devise/shared/links" %>    
+</div>
+</div>
+</div>
+</div>
+
+Make a commit:
+git add -A
+git commit -m "Setup user sign in"
+git checkout master
+git merge users-signin
+git push
+
 # Section 3, Lecture 47
-
-
 
 The custom.css.scss file for the course can be found in the course github repo:
 
