@@ -1,6 +1,70 @@
+# Section 2, Lecture 41
+
+Refactor the controller code using filters by factoring this line from the show, edit, update and destroy actions into a private method.
+
+@article = Article.find(params[:id])
+
+Add the following line to articles controller on top right before the class definition:
+
+class ArticlesController < ApplicationController
+before_action :set_article, only: [:show, :edit, :update, :destroy]
+
+Remove the line @article = Article.find(params[:id]) from show, edit, update and destroy actions
+
+def show
+end
+
+def edit
+end
+
+def update
+if @article.update(article_params)
+....
+
+def destroy
+if @article.destroy
+....
+
+Under private create a method
+
+private
+
+def set_article
+@article = Article.find(params[:id])
+end
+
+Run rspec is again to make sure nothing is broken.
+
+git add -A
+git commit -m "Implementing delete article"
+git checkout master
+git merge delete-article
+git push
+
+Now refactor the new and edit views ->
+
+Create a new topic branch:
+git checkout -b article-new-edit-view
+
+create a partial file in app/views/articles folder called _form.html.erb
+
+within it cut and paste all the common code from new.html.erb and edit.html.erb except the heading which isn't common and save it
+
+remove this common code from new.html.erb and edit.html.erb and replace it with the following line in each file:
+
+<%= render 'form' %>
+
+Make sure all tests pass
+
+Now make a commit
+
+git add -A
+git commit -m "Refactor new and edit form"
+git checkout master
+git merge article-new-edit-view
+git push
+
 # Section 2, Lecture 39
-
-
 
 Create a new branch delete-article:
 
