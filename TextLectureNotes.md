@@ -1,6 +1,87 @@
+# Section 3, Lecture 55
+
+Create a new git branch called link-articles-to-users:
+
+git checkout -b link-articles-to-users
+Open the creating_articles_spec.rb file and modify the contents.
+Add a logged-in user provided by Warden through Devise as follows:
+
+before do
+@john = User.create(email: "john@example.com", password: "password")
+login_as(@john)
+end
+
+expect(page).to have_content("Created by: #{@john.email}")
+
+Running rspec gives this error message:
+Undefined method 'login_as' for ...
+
+Include Warden test helpers in spec/rails_helper.rb file below the require state-
+ments:
+
+include Warden::Test::Helpers
+
+Running rspec again results in an error message that says
+expected to find text "Created by: john@example.com"
+
+Add that text to the index view template, inside the loop block like this:
+
+<div class="article-body">
+<%= truncate(sanitize(article.body), length: 500) %>
+</div>
+<div class="author">
+<small>Created by: <%= article.user.email %></small>
+</div>
+
+Running rspec fails with the message undefined method 'user' for ....
+
+Add the associations to the user and article models like this:
+
+class User < ApplicationRecord
+ Include default devise modules. Others available are:
+ :confirmable, :lockable, :timeoutable and :omniauthable
+devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable
+has_many :articles
+end
+
+Now article.rb
+
+class Article < ApplicationRecord
+validates :title, presence: true
+validates :body, presence: true
+
+belongs_to :user
+end
+
+Run rspec again and it fails with the message
+
+Failure/Error: expect(page).to have_content("Article has been created") expected to find text "Article has been created" in "Blog App Sign
+out Sign up Sign in (Signed in as john@example.com) Article has not been created Adding New Article 1 error prohibited this article from being saved: User must exist
+
+The key statement here is "User must exist". This is new in Rails 5 and it’s coming from the ’belongs_to :user’ in the Article model.
+Create a migration to add the user id to the articles table:
+
+rails g migration add_user_to_articles user:references
+
+The same error is receated by RSpec, we have not assigned user to articles yet
+
+Modify and add an expectation first in the creating article spec first:
+expect(Article.last.user).to eq(@john)
+
+Rspec now is notifying of undefined method 'user' for nil class
+
+Make the update in articles_controller create action, right after @article = Article.new... add in:
+@article.user = current_user
+
+Make a commit:
+git add -A
+git commit -m "Link articles to users"
+git checkout master
+git merge link-articles-to-users
+git push
+
 # Section 3, Lecture 53
-
-
 
 Create a new git branch called user-signout like below:
 
