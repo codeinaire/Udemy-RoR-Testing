@@ -193,3 +193,23 @@ Signing up users
 
 Invalid sign-up
 - do an invalid sign-up and ensure that it fails.
+
+### Lecture 55
+
+Articles will belong to users
+
+USers will own articles
+
+Users - 1 side of this
+
+Articles -many
+
+1 user can have many articles
+
+an article can only belong to 1 user
+
+foreign key of user_id in the articles table
+
+Steps:
+
+- create the spec

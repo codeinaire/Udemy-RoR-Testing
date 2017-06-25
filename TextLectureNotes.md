@@ -1,3 +1,61 @@
+# Section 3, Lecture 53
+
+
+
+Create a new git branch called user-signout like below:
+
+git checkout -b user-signout
+
+Write the feature test called signing_users_out_spec.rb and fill in the content like below:
+
+require "rails_helper"
+RSpec.feature "Signing out signed-in users" do
+before do
+@john = User.create!(email: "john@example.com", password: "password")
+visit '/'
+click_link "Sign in"
+fill_in "Email", with: @john.email
+fill_in "Password", with: @john.password
+click_button "Log in"
+end
+
+scenario do
+visit "/"
+click_link "Sign out"
+expect(page).to have_content("Signed out successfully.")
+expect(page).not_to have_content("Sign out")
+end
+end
+
+Running rspec fails with the message Unable to find link "Sign out". Add the link to the header partial, above the Sign up link.
+
+<li>
+<%= link_to "Sign out", destroy_user_session_path, method: :delete %>
+</li>
+
+Run rspec again and it fails with
+1) Signing out signed-in users should not text "Sign out" Failure/Error: expect(page).not_to have_content("Sign out")
+expected not to find text "Sign out" in "Blog App Sign out
+
+Hide the link in the header partial like below:
+<ul class="nav navbar-nav navbar-right">
+<% if user_signed_in? %>
+<li>
+<%= link_to "Sign out", destroy_user_session_path, method: :delete %>
+</li>
+<% else %>
+<li><%= link_to "Sign up", new_user_registration_path %></li>
+<li><%= link_to "Sign in", new_user_session_path %></li>
+<% end %> ...
+
+Commit and push
+
+git add -A
+git commit -m "Complete user signout"
+git checkout master
+git merge user-signout
+git push
+
 # Section 3 Lecture 51
 
 Create a branch:
