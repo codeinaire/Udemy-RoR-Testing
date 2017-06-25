@@ -1,3 +1,114 @@
+# Section 2, Lecture 29
+
+
+
+First create a topic branch for listing articles ->
+
+git checkout -b listing-articles
+Next create the feature spec called listing_article_spec.rb:
+require "rails_helper"
+RSpec.feature "Listing Articles" do
+before do
+@article1 = Article.create(title: "The first article",
+body: "Lorem ipsum dolor sit amet, consectetur.")
+@article2 = Article.create(title: "The second article",
+body: "Pellentesque ac ligula in tellus feugiat.")
+end
+
+scenario "A user lists all articles" do
+
+visit "/"
+expect(page).to have_content(@article1.title)
+expect(page).to have_content(@article1.body)
+expect(page).to have_content(@article2.title)
+expect(page).to have_content(@article2.body)
+expect(page).to have_link(@article1.title)
+expect(page).to have_link(@article2.title)
+end
+end
+
+We get the following error:
+Failure/Error: expect(page).to have_content(@article1.title) expected to find text "The first article" in "Blog App New Articl....
+
+Write code to display the list of articles in the article’s index.html.erb file in the app/views/articles folder like below:
+
+<%= link_to "New Article", new_article_path, class: "btn btn-defaul btn-lg", id: "new-article-btn" %>
+<% @articles.each do |article| %>
+<div class="well well-lg">
+<div class="article-title">
+<%= article.title %>
+</div>
+<div class="article-body">
+<%= article.body %>
+</div>
+</div>
+<% end %>
+
+When the specs run, they fail with messages such as:
+Failure/Error: <% @articles.each do |article| %>
+ActionView::Template::Error:
+undefined method `each' for nil:NilClass
+
+This suggests that the @articles variable is not defined. Define it in the articles_controller.rb file:
+
+def index
+@articles = Article.all
+end
+
+When the spec runs again it fails with this message:
+Failure/Error: expect(page).to have_link(@article1.title)
+expected to find link "The first article" but there were no
+matches
+
+The title is supposed to be a link so it should be changed to this:
+<div class="article-title">
+<%= link_to article.title, article_path(article) %>
+</div>
+
+The tests are now passing
+
+Update the index.html.erb to display article body, truncated to 500 characters max like below:
+
+<div class="article-body">
+<%= truncate(article.body, length: 500) %>
+</div>
+
+Add the following styles to custom.css.scss:
+// Listing articles styling
+
+.article-title {
+  font-weight: bold;
+  font-size: 2.5em;
+  margin-bottom: 0.8em;
+  padding-left: 0.7em;
+}
+
+.article-body {
+  font-size: 1.5em;
+  padding-left: 1.2em;
+  color: #64103F;
+
+}
+
+.author {
+  color: #64103F;
+  padding-left: 25px;
+}
+
+// .article-title {
+//
+// }
+
+.article-detail {
+  margin-top: 20px;
+  color: #0000ff;
+}
+
+We want the most recent article to show up on top so add the following to your app/models/article.rb file:
+default_scope { order(created_at: :desc) }
+
+```
+
 # Section 2, Lecture 25
 
 Add the following styles to custom.css.scss:
