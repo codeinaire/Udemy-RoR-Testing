@@ -1,3 +1,187 @@
+# Section 3, Lecture 61
+
+
+
+Create a new git branch called controller-access-control
+
+Update before do in spec/requests/articles_spec.rb spec:
+before do
+@john = User.create(email: "john@example.com", password: "password")
+@article = Article.create!(title: "Title one", body: "Body of article one", user: @john)
+end
+
+Add a second user:
+@fred = User.create(email: "fred@example.com", password: "password")
+
+describe 'GET /articles/:id/edit' do
+context 'with non-signed in user' do
+before { get "/articles/#{@article.id}/edit" }
+it "redirects to the signin page" do
+expect(response.status).to eq 302
+flash_message = "You need to sign in or sign up before continuing"
+expect(flash[:alert]).to eq flash_message
+end
+end
+context 'with signed in users who are non-owners' do
+before do
+login_as(@fred)
+get "/articles/#{@article.id}/edit"
+end
+it "redirects to the home page" do
+expect(response.status).to eq 302
+flash_message = "You can only edit your own article."
+expect(flash[:alert]).to eq flash_message
+end
+end
+end
+
+Failure/Error: expect(response.status).to eq 302
+expected: 302
+got: 200
+
+Go to the articles controller and modify the edit/update actions as follows:
+
+def edit
+unless @article.user == current_user
+flash[:alert] = "You can only edit your own article."
+redirect_to root_path
+end
+end
+
+def update
+unless @article.user == current_user
+flash[:danger] = "You can only edit your own article."
+redirect_to root_path
+else
+if @article.update(article_params)
+flash[:success] = "Article has been updated"
+redirect_to @article
+else
+flash.now[:danger] = "Article has not been updated"
+render :edit
+end
+end
+end
+
+Add another context:
+
+context 'with signed in user as owner' do
+before do
+login_as(@john)
+get "/articles/#{@article.id}/edit"
+end
+it "successfully edits article" do
+expect(response.status).to eq 200
+end
+end
+
+Do a commit:
+git add -A
+git commit -m "Restrict access with controller actions"
+git checkout master
+git merge controller-access-control
+git push
+
+
+# Section 3, Lecture 59
+
+Create a new branch:
+
+git checkout -b restrict-access
+
+Go to listing_article_spec.rb and make the following update to the first scenario:
+
+scenario "with articles created and user not signed in" do
+visit "/"
+expect(page).to have_content(@article1.title)
+expect(page).to have_content(@article1.body)
+expect(page).to have_content(@article2.title)
+expect(page).to have_content(@article2.body)
+expect(page).to have_link(@article1.title)
+expect(page).to have_link(@article2.title)
+expect(page).not_to have_link("New Article")
+end
+
+RSpec fails with finding "New Article" link
+
+Update index.html.erb in views/articles wrap the new article button with the following:
+<% if user_signed_in? %>
+<%= link_to "New Article", new_article_path, class: "btn btn-default btn-lg", id: "new-article-btn" %>
+<% end %>
+
+Now update the second scenario
+
+scenario "with articles created and user signed in" do
+login_as(@john)
+visit "/"
+expect(page).to have_content(@article1.title)
+expect(page).to have_content(@article1.body)
+expect(page).to have_content(@article2.title)
+expect(page).to have_content(@article2.body)
+expect(page).to have_link(@article1.title)
+expect(page).to have_link(@article2.title)
+expect(page).to have_link("New Article")
+end
+
+Update john to be @john in the before do (all 3 instances)
+
+Do a git commit (not a merge, just a commit)
+
+In the show_article_spec.rb file add a 2nd user @fred, and update john to be @john, update the article to be created by @john (instead of john)
+
+Update the two scenarios
+
+scenario "to a non-signed in user hides Edit/Delete Links" do
+visit "/"
+click_link @article.title
+expect(page).to have_content(@article.title)
+expect(page).to have_content(@article.body)
+expect(current_path).to eq(article_path(@article))
+expect(page).not_to have_link("Edit Article")
+expect(page).not_to have_link("Delete Article")
+end
+
+scenario "A non-owner signed in cannot see both links" do
+login_as(@fred)
+visit "/"
+click_link @article.title
+expect(page).not_to have_link("Edit Article")
+expect(page).not_to have_link("Delete Article")
+end
+
+Add the following to the show.html.erb page to make one of the tests pass:
+<% if user_signed_in? %>
+<div class="edit-delete">
+<%= link_to "Edit Article", edit_article_path(@article),
+class: "btn btn-primary btn-lg btn-space" %>
+<%= link_to "Delete Article", article_path(@article), method: :delete,
+data: { confirm: "Are you sure you want to delete article?" },
+class: "btn btn-primary btn-lg btn-space" %>
+</div>
+<% end %>
+
+To make the 2nd scenario pass, add the following to the if user_signed_in? line:
+
+<% if user_signed_in? && current_user == @article.user %>
+
+Do a commit to git:
+git add -A
+git commit -m "hide links from non-signed in users and non-owners"
+
+Add the last scenario to the spec to ensure signed in owners of articles see both links:
+scenario "A signed in owner sees both links" do
+login_as(@john)
+visit "/"
+click_link @article.title
+expect(page).to have_content(@article.title)
+expect(page).to have_content(@article.body)
+expect(current_path).to eq(article_path(@article))
+expect(page).to have_link("Edit Article")
+expect(page).to have_link("Delete Article")
+end
+
+Do a git commit and merge the topic branch to branch master
+
 # Section 3, Lecture 57
 
 Create a branch:
