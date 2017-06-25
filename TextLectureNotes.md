@@ -1,3 +1,151 @@
+# Section 2, Lecture 39
+
+
+
+Create a new branch delete-article:
+
+git checkout -b delete-article
+
+Create the feature spec named delete_article_spec.rb in the spec/features folder as shown below:
+require "rails_helper"
+RSpec.feature "Deleting an Article" do
+
+before do
+@article = Article.create(title: "The first article", body: "Lorem ipsum dolor sit amet, consectetur.")
+
+scenario "A user deletes an article" do
+end
+visit "/"
+click_link @article.title
+click_link "Delete Article"
+expect(page).to have_content("Article has been deleted")
+expect(current_path).to eq(articles_path)
+end
+end
+
+Running rspec results in an error: Unable to find link "Delete Article"
+
+Open app/views/articles/show.html.erb and add link below:
+
+<%= link_to "Delete Article", article_path(@article),
+method: :delete,
+data: { confirm: "Are you sure you want to delete article?" },
+class: "btn btn-primary btn-lg btn-space" %>
+
+Run rspec again. If fails with an error message that says The action 'destroy' could not be found for ArticlesController
+
+Add the destroy action in articles controller:
+
+def destroy
+@article = Article.find(params[:id])
+if @article.destroy
+flash[:success] = "Article has been deleted."
+redirect_to articles_path
+end
+end
+
+Run rspec again. This time it passes.
+
+Wrap Edit and Destroy links with a div:
+
+<div class="edit-delete">
+<%= link_to "Edit Article", edit_article_path(@article), class: "btn btn-primary btn-lg btn-space" %>
+<%= link_to "Delete Article", article_path(@article),
+method: :delete,
+data: { confirm: "Are you sure you want to delete article?" }, class: "btn btn-primary btn-lg btn-space" %>
+</div>
+
+and add this class to the stylesheet:
+
+.edit-delete {
+margin-top: 20px; }
+
+
+# Section 2, Lecture 37
+
+Create a new branch editing-article:
+
+git checkout -b editing-article
+
+Create a feature spec called editing_article_spec.rb as shown below:
+
+require "rails_helper"
+RSpec.feature "Editing an Article" do
+before do
+@article = Article.create(title: "First Article", body: "Lorem Ipsum")
+end
+
+scenario "A user updates an article" do
+visit "/"
+click_link @article.title
+click_link "Edit Article"
+fill_in "Title", with: "Updated Article"
+fill_in "Body", with: "Lorem Ipsum"
+click_button "Update Article"
+expect(page).to have_content("Article has been updated")
+expect(page.current_path).to eq(article_path(@article))
+end
+
+scenario "A user fails to update an article" do
+visit "/"
+click_link @article.title click_link "Edit Article"
+fill_in "Title", with: ""
+fill_in "Body", with: "Lorem Ipsum"
+click_button "Update Article"
+expect(page).to have_content("Article has not been updated")
+expect(current_path).to eq(article_path(@article))
+end
+end
+
+Running rspec results in an error: Unable to find link "Edit Article"
+
+Open app/views/articles/show.html.erb and add the link:
+<%= link_to "Edit Article", edit_article_path(@article), class: "btn btn-primary btn-lg btn-space" %>
+
+Run rspec again. Next error message says
+The action 'edit' could not be for ArticlesController
+
+Add the edit action:
+
+def edit
+@article = Article.find(params[:id])
+end
+
+Run rspec again. The error message says:
+
+ActionController::UnknownFormat:
+ArticlesController#edit is missing a template for this request
+
+Copy the contents of the new.html.erb article template and paste it to a new file called edit.html.erb in the same app/views/articles folder and change the header:
+<h3 class='text-center'>Editing an Article</h3>
+
+When rspec is run again it results in an error that says:
+
+Failure/Error: click_button "Update Article"
+AbstractController::ActionNotFound:
+The action 'update' could not be found for ArticlesController
+
+Create the update action in articles_controller.rb file:
+
+def update
+@article = Article.find(params[:id])
+if @article.update(article_params)
+flash[:success] = "Article has been updated"
+redirect_to @article
+else
+flash.now[:danger] = "Article has not been updated"
+render :edit
+end
+end
+
+All tests in RSpec now pass
+git add -A
+git commit -m "Implement editing article"
+git checkout master
+git merge editing-article
+git push
+
+
 # Section 2, Lecture 35
 
 Create a new branch (not done in the video):
