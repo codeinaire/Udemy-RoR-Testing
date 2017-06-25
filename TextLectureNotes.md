@@ -1,6 +1,56 @@
+# Section 2, Lecture 30
+
+
+
+Let’s deal with the case where there are no articles in the db.
+
+Add the following scenario to the listing_articles_spec file:
+
+scenario "A user has no articles" do
+Article.delete_all
+visit "/"
+expect(page).not_to have_content(@article1.title)
+expect(page).to have_content(@article1.body)
+expect(page).to have_content(@article2.title)
+expect(page).to have_content(@article2.body)
+expect(page).to have_link(@article1.title)
+expect(page).to have_link(@article2.title)
+within ("h1#no-articles") do
+expect(page).to have_content("No Articles Created")
+end
+end
+
+When run, it fails with the error:
+Failure/Error: within ("h1#no-articles") do
+Capybara::ElementNotFound:
+Unable to find css "h1#no-articles"
+
+Modify index.html.erb like below to include this:
+<% if @articles.empty? %>
+<h1 id="no-articles">No Articles Created</h1>
+<% else %>
+<% @articles.each do |article| %>
+<div class="well well-lg article-detail">
+<div class="article-title">
+<%= link_to article.title, article_path(article) %>
+</div>
+<div class="article-body">
+<%= article.body %>
+</div>
+</div>
+<% end %>
+<% end %>
+
+And with this all tests pass.
+Commit/merge and push to Github ->
+git add -A
+git commit -m "Implement displaying a message when no articles are created."
+git checkout master
+git merge listing-articles
+git push
+
+
 # Section 2, Lecture 29
-
-
 
 First create a topic branch for listing articles ->
 

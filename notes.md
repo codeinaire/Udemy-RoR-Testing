@@ -169,3 +169,10 @@ Why did he make changes to the guard file?
 - list the two articles
 
 - expect both articles titles and bodies to be present
+
+### Lecture 33 - SHow article feature test
+
+- create branch
+- create 1 article to display
+
+- show the article title and details
