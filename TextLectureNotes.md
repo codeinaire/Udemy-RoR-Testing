@@ -1,6 +1,86 @@
+# Section 2, Lecture 33
+
+Create a new branch show-article (not done in video):
+git checkout -b show-article
+
+Create the feature spec show_article_spec.rb in the features folder as shown below:
+
+require "rails_helper"
+RSpec.feature "Showing an Article" do
+before do
+@article = Article.create(title: "The first article",
+body: "Lorem ipsum dolor sit amet, consectetur.")
+
+scenario "A user lists all articles" do
+visit "/"
+click_link @article.title
+expect(page).to have_content(@article.title)
+expect(page).to have_content(@article.body)
+expect(current_path).to eq(article_path(@article))
+end
+end
+
+When rspec runs, it fails with an error message that says the show action not found for ArticlesController:
+
+AbstractController::ActionNotFound:
+The action 'show' could not be found for ArticlesController.....
+
+Add the show action in the articles_controller.rb file:
+def show
+@article = Article.find(params[:id])
+end
+
+Rspec fails again with this error message
+
+ActionController::UnknownFormat:
+ArticlesController#show is missing a template for this request
+
+Create the show view (show.html.erb) in the app/views/articles folder like below:
+
+<article class="detail-article">
+<h1 class="article-detail-title">
+<%= @article.title %>
+</h1>
+<div class="glyphicon glyphicon-calendar" id="article-date">
+<%= @article.created_at.strftime("%b %d, %Y") %>
+</div>
+<div class="article-body">
+<%= @article.body %>
+</div>
+</article>
+
+When rspec runs it passes.
+
+Add the styling for it:
+.article-detail {
+  margin-top: 20px;
+  color: #0000ff;
+}
+
+.article-detail-title {
+  font-size: 3em;
+  margin-bottom: 40px;
+}
+
+.article-show-body {
+  font-size: 1.5em;
+  padding-left: 0em;
+  margin-top: 15px;
+}
+
+.edit-delete {
+  margin-top: 20px;
+}
+
+Commit changes:
+
+git add -A
+git commit -m "Implement Showing Article Details"
+git checkout master
+git merge show-article
+git push
+
 # Section 2, Lecture 30
-
-
 
 Let’s deal with the case where there are no articles in the db.
 
