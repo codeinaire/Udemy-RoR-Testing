@@ -1,3 +1,66 @@
+# Section 2, Lecture 35
+
+Create a new branch (not done in the video):
+
+git checkout -b find-non-existent-article
+
+Create a new folder inside the spec folder and call it requests, within it create a file called articles_spec.rb:
+
+require 'rails_helper'
+RSpec.describe "Articles", type: :request do
+before do
+@article = Article.create(title: "Title one", body: "Body of article one")
+end
+
+describe 'GET /articles/:id' do
+context 'with existing article' do
+before { get "/articles/#{@article.id}" }
+it "handles existing article" do
+expect(response.status).to eq 200
+end
+end
+context 'with non-existing article' do
+before { get "/articles/xxxxx" }
+it "handles non-existing article" do
+expect(response.status).to eq 302
+flash_message = "The article you are looking for could not be found"
+expect(flash[:alert]).to eq flash_message
+end
+end
+end
+end
+
+RSpec runs and fails with the message:
+ActiveRecord::RecordNotFound:
+Couldn't find Article with 'id'=xxxxx
+
+Since the solution may not only apply to the article show action, we have to implement it in the application controller by adding the code below:
+
+rescue_from ActiveRecord::RecordNotFound, with: :resource_not_found
+protected
+def resource_not_found
+end
+
+The resource_not_found method is empty because we will override it in the individual controllers as necessary.
+For the articles controller we do it as below:
+
+protected
+def resource_not_found
+message = "The article you are looking for could not be found"
+flash[:alert] = message
+redirect_to root_path
+end
+
+Once saved, all tests pass!
+
+Go ahead and commit:
+git add -A
+git commit -m "handle exception for article not found"
+git checkout master
+git merge find-non-existent-article
+git push
+
+
 # Section 2, Lecture 33
 
 Create a new branch show-article (not done in video):
