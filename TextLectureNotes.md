@@ -1,3 +1,34 @@
+# Section 3, Lecture 43
+
+Create a new git branch called setup-devise:
+
+git checkout -b setup-devise
+
+Add the devise gem to the Gemfile:
+gem 'devise', '~>4.2.0'
+
+Run:
+bundle install
+
+Run devise generator:
+rails g devise:install
+
+Create user model:
+rails g devise user
+
+Run the migration file:
+rails db:migrate
+
+Check the routes devise provided:
+rails routes | grep user
+
+Commit the changes:
+git add -A
+git commit -m "Setup devise"
+git checkout master
+git merge setup-devise
+git push
+
 # Section 2, Lecture 41
 
 Refactor the controller code using filters by factoring this line from the show, edit, update and destroy actions into a private method.
