@@ -1,3 +1,91 @@
+# Section 3, Lecture 47
+
+
+
+The custom.css.scss file for the course can be found in the course github repo:
+
+https://github.com/udemyrailscourse/bdd_course_rails5/blob/master/app/assets/stylesheets/custom.css.scss
+
+First modify the ul class of the signup link to look like below in the application.html.erb:
+
+<ul class="nav navbar-nav navbar-right">
+<li><%= link_to "Sign up", new_user_registration_path %></li>
+</ul>
+
+Then run:
+rails g devise:views
+
+Update app/views/devise/registrations/new.html.erb:
+
+<h2 class='text-center'>Sign up</h2>
+<div class='row'>
+<div class='col-md-12'>
+<%= form_for(resource, as: resource_name,
+:html => {class: "form-horizontal", role: "form"}, url: registration_path(resource_name)) do |f| %>
+<%= devise_error_messages! %>
+<div class='form-group'>
+<div class='control-label col-md-3'>
+<%= f.label :email %>
+</div>
+<div class='col-md-9'>
+<%= f.email_field :email, class: 'form-control', autofocus: true %>
+</div>
+</div>
+<div class='form-group'>
+<div class='control-label col-md-3'>
+<%= f.label :password %>
+</div>
+<div class='col-md-9'>
+<%= f.password_field :password, class: 'form-control',
+autocomplete: "off" %>
+<% if @minimum_password_length %>
+<em>(<%= @minimum_password_length %> characters minimum)</em>
+<% end %><br />
+</div>
+</div>
+
+<div class='form-group'>
+<div class='control-label col-md-3'>
+<%= f.label :password_confirmation %>
+</div>
+<div class='col-md-9'>
+<%= f.password_field :password_confirmation, class: 'form-control', autocomplete: "off" %>
+</div>
+</div>
+<div class='form-group'>
+<div class='col-md-offset-3 col-md-9'>
+<%= f.submit "Sign up", class: 'btn btn-primary btn-lg' %>
+</div>
+</div>
+<% end %>
+<div class='form-group'>
+<div class='col-md-offset-3 col-md-9'>
+<%= render "devise/shared/links" %> </div>
+</div>
+</div>
+</div>
+
+Add an extra class of sign-link to the shared links:
+<div class='form-group'>
+<div class='col-md-offset-3 col-md-9 sign-link'>
+<%= render "devise/shared/links" %>
+</div>
+</div>
+
+Update custom.css.scss with this class
+// Sign up -- Sign in
+
+.sign-link a {
+color: #64103F; }
+
+Commit and merge:
+git add -A
+git commit -m "Style Devise Signup View Template"
+git checkout master
+git merge user-signup
+git push
+
+
 # Section 3, Lecture 43
 
 Create a new git branch called setup-devise:
