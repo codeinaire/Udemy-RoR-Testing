@@ -1,6 +1,223 @@
+# Section 5, Lecture 69
+
+Open the file called articles_helper in the app/helpers folder and add the following to it:
+
+module ArticlesHelper
+def persisted_comments(comments)
+comments.reject { |comment| comment.new_record? }
+end
+end
+
+We want only comment objects coming from the database.
+
+Running the spec again fails with the error message:
+
+ActionView::Template::Error:
+undefined method `reject' for nil:NilClass
+
+We are calling reject on comments variable, but it is not defined. Define it in the show action of the ArticlesController, like below:
+
+def show
+@comment = @article.comments.build
+@comments = @article.comments
+end
+
+And with that the spec passes. Do a commit as below (but don't merge yet):
+
+git add -A
+git commit -m "Implement adding comments"
+
+`
+
+#Section 5, Lecture 67
+
+Create the comment model with the following command:
+rails g model comment body:text article:references user:references
+
+Run the migration:
+
+rails db:migrate
+
+Add validations to the comment.rb model file under app/models like below:
+
+class Comment < ApplicationRecord
+belongs_to :article
+belongs_to :user
+validates :body, presence: true
+end
+
+Add the has_many :comments line to the bottom of the article model like below:
+
+class Article < ActiveRecord::Base
+validates :title, presence: true
+validates :body, presence: true
+belongs_to :user
+has_many :comments, dependent: :destroy
+end
+
+RSpec fails with this error message:
+undefined method 'article_comments_path' for ...
+This is a routing error. Modify the resources :articles line in config/routes.rb file as follows:
+
+resources :articles do
+  resources :comments
+end
+
+Run rspec again and fails with the message:
+Uninitialized constant CommentsController
+
+Create the comments controller:
+
+rails g controller comments
+
+Error says : The action 'create' could not be found for CommentsController
+
+Add the create action and rest of the comments controller like below:
+
+class CommentsController < ApplicationController
+before_action :set_article
+
+def create
+@comment = @article.comments.build(comment_params)
+@comment.user = current_user
+if @comment.save
+flash[:notice] = "Comment has been created"
+else
+flash.now[:alert] = "Comment has not been created"
+end
+redirect_to article_path(@article)
+end
+
+private
+def comment_params
+params.require(:comment).permit(:body)
+end
+def set_article
+@article = Article.find(params[:article_id])
+end
+end
+
+Error now says expected to find text "An awesome ..." but it can't find it
+Add it in the show.html.erb file towards the bottom:
+<div class='col-md-12'>
+<header>
+<h2>Comments</h2>
+</header>
+<div class="col-md-10">
+<% if @article.comments.any? %>
+<% persisted_comments(@comments).each do |comment| %>
+<div class="comment-body">
+<%= comment.body %>
+</div>
+<div class="comment-time">
+<%= time_ago_in_words(comment.created_at) %>
+ago by <%= comment.user.email %>
+</div>
+<hr>
+<% end %>
+<% else %>
+There are no comments to show.
+<% end %>
+</div>
+
+Running the spec again fails with the error message:
+
+ActionView::Template::Error:
+undefined method `persisted_comments' for ...
+
+We will fix this in the next lecture
+
+`
+
+# Section 5, Lecture 65
+
+<hr>
+
+<div class='col-md-12'>
+<%= form_for [@article, @comment ],
+:html => {class: "form-horizontal", role: "form"} do |f| %>
+<% if @comment.errors.any? %>
+<div class="panel panel-danger col-md-offset-1">
+<div class="panel-heading">
+<h2 class="panel-title">
+<%= pluralize(@comment.errors.count, "error") %>
+prohibited this comment from being saved:
+</h2>
+<div class="panel-body">
+<ul>
+<% @comment.errors.full_messages.each do |msg| %>
+<li> <%= msg %> </li>
+<% end %>
+</ul>
+</div>
+</div>
+</div>
+<% end %>
+<div class='form-group'>
+<div class='control-label col-md-2'>
+<%= f.label :body, 'New Comment' %>
+</div>
+<div class='col-md-10'>
+<%= f.text_area :body, rows: 10, class: 'form-control', placeholder: 'Your comment' %>
+</div>
+</div>
+<div class='form-group'>
+<div class='col-md-offset-2 col-md-10'>
+<%= f.submit "Add Comment", class: 'btn btn-primary btn-lg pull-right' %>
+</div>
+</div>
+<% end %>
+</div>
+
+Running rspec fails with the message:
+First argument in form cannot contain nil or be empty
+
+In the articles controller we have to create the @comment instance variable:
+
+def show
+@comment = @article.comments.build
+end
+
+Running rspec again fails with the message:
+undefined method 'comments' for ...
+
+The comment model and the association do not exist. We will do that in the next lecture
+
+
+#Section 5 Lecture 63
+
+Create a new git branch called adding-comments
+
+git checkout -b adding-comments
+
+Create a new spec adding_comments_spec.rb:
+
+require "rails_helper"
+RSpec.feature "Adding Reviews to Articles" do
+before do
+@john = User.create(email: "john@example.com", password: "password")
+@fred = User.create(email: "fred@example.com", password: "password")
+@article = Article.create(title: "The first article", body: "Lorem ipsum dolor sit amet.", user: @john)
+end
+
+scenario "permits a signed in user to write a review" do
+login_as(@fred)
+visit "/"
+click_link @article.title
+fill_in "New Comment", with: "An awesome article"
+click_button "Add Comment"
+expect(page).to have_content("Comment has been created")
+expect(page).to have_content("An awesome article")
+expect(current_path).to eq(article_path(@article.id))
+end
+end
+
+Failure:
+Unable to find field "New Comment"
+
+Go to the article show view template and add a form with a text-area below the 2 buttons (we will add this in the next video)
+
 # Section 3, Lecture 61
-
-
 
 Create a new git branch called controller-access-control
 
