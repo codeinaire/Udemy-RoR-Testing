@@ -22,7 +22,7 @@ RSpec.feature "Editing an article:" do
     expect(page.current_path).to eq(article_path(@article))
   end
 
-  scenario "A user updates an article" do
+  scenario "A user updates an article with no title or body" do
     visit "/"
 
     click_link @article.title
